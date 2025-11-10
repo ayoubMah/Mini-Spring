@@ -5,6 +5,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Validator {
+
+    // ANSI escape codes for colors
+    public static final String ANSI_RESET = "\u001B[0m";
+    public static final String ANSI_RED = "\u001B[31m";
+    public static final String ANSI_GREEN = "\u001B[32m";
+
     public record ValidationError(String field, String message){
 
     }
@@ -24,6 +30,19 @@ public class Validator {
                 if (value == null) {
                     errors.add(new ValidationError(field.getName(), annotation.message()));
                 }
+            } else if (field.isAnnotationPresent(Range.class)) {
+                Range range = field.getAnnotation(Range.class);
+                Object value = field.get(obj);
+
+                /*if (!((int)value >= annotation.min() && (int)value <= annotation.max())){  => not save */
+                if (value instanceof Number num){
+                    double doubleValue = num.doubleValue(); // this will support int, double, float ... => so it's better
+                    if (doubleValue < range.min() || doubleValue > range.max()){
+                        errors.add(new ValidationError(field.getName(), range.message()));
+                    }
+                } else if (value != null) {
+                    errors.add(new ValidationError(field.getName(), "@Range can only be numeric field"));
+                }
             }
         }
         return errors;
@@ -31,9 +50,10 @@ public class Validator {
 
     public static void printErrors(List<ValidationError> errors) {
         if (errors.isEmpty()) {
-            System.out.println("✅ All validations passed!");
+            System.out.println(ANSI_GREEN + "✅ All validations passed!" + ANSI_RESET);
         } else {
-            errors.forEach(e -> System.err.println(e.field() + ": " + e.message()));
+            System.out.println(ANSI_RED + "❌ Validation failed with " + errors.size() + " error(s):" + ANSI_RESET);
+            errors.forEach(e -> System.err.println(ANSI_RED + "  - " + e.field() + ": " + e.message() + ANSI_RESET));
         }
     }
 }
