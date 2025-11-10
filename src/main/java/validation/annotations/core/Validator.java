@@ -3,6 +3,7 @@ package main.java.validation.annotations.core;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class Validator {
 
@@ -24,12 +25,16 @@ public class Validator {
         Field[] fields = clazz.getDeclaredFields();
         for (Field field : fields){
             field.setAccessible(true);
+            // @NotNull Annotation
             if (field.isAnnotationPresent(NotNull.class)){
                 NotNull annotation = field.getAnnotation(NotNull.class);
                 Object value = field.get(obj);
+
                 if (value == null) {
                     errors.add(new ValidationError(field.getName(), annotation.message()));
                 }
+
+             // @Range Annotation
             } else if (field.isAnnotationPresent(Range.class)) {
                 Range range = field.getAnnotation(Range.class);
                 Object value = field.get(obj);
@@ -41,7 +46,24 @@ public class Validator {
                         errors.add(new ValidationError(field.getName(), range.message()));
                     }
                 } else if (value != null) {
-                    errors.add(new ValidationError(field.getName(), "@Range can only be numeric field"));
+                    errors.add(new ValidationError(field.getName(), "@Range can only be numeric field :)"));
+                }
+             // @Email Annotation
+            } else if (field.isAnnotationPresent(Email.class)) {
+                Email email = field.getAnnotation(Email.class);
+                Object value = field.get(obj);
+                final Pattern pattern = Pattern.compile("^[\\w.-]+@[\\w.-]+\\.[a-zA-Z]{2,}$");
+
+                if (value == null) {
+                    errors.add(new ValidationError(field.getName(), email.message()));
+
+                } else if (!(value instanceof String)) {
+                    errors.add(new ValidationError(field.getName(), "Invalid Email => should be string :)"));
+                } else if (value instanceof String str) {
+                    String stringValue = str.toString();
+                    if (!pattern.matcher(stringValue).matches()){
+                        errors.add(new ValidationError(field.getName(), "Invalid Email :)"));
+                    }
                 }
             }
         }
