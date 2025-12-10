@@ -1,12 +1,14 @@
-import com.ayoub.framework.validation.OrderService;
+import com.ayoub.framework.validation.MiniContainer;
 import com.ayoub.framework.validation.PaymentProcess;
-import com.ayoub.framework.validation.PaypalService;
 
 public class Main {
-    public static void main(String[] args) throws IllegalAccessException {
+    public static void main(String[] args) {
 
-            PaymentProcess paymentProcessor =  new PaypalService();
-            OrderService orderService = new OrderService(paymentProcessor);
-            orderService.checkout();
+        MiniContainer miniContainer = new MiniContainer();
+
+        PaymentProcess p1 = (PaymentProcess) miniContainer.getBean(PaymentProcess.class);
+        PaymentProcess p2 = (PaymentProcess) miniContainer.getBean(PaymentProcess.class);
+
+        System.out.println(p1 == p2);
     }
 }
